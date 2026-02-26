@@ -41,6 +41,53 @@ GitHub: https://github.com/defreez/discovery1
 - Procedural geometry (no external 3D models)
 - AI-generated textures
 
+## Architecture: Headless-First
+
+**The entire game runs without rendering. Renderer is just a viewer.**
+
+- Player movement, collision, spatial queries - all headless
+- Drive through the ship, interact with geometry - no window needed
+- Core has ZERO raylib dependencies
+- Tests exercise the full 3D simulation
+
+**All map data in JSON.** Walls, architecture, everything - no hardcoded geometry.
+
+```
+src/
+  core/           # Pure C++, no raylib
+    math.hpp        # Vec3, Mat4, Quat
+    player.hpp      # Position, orientation, movement
+    world.hpp       # Ship geometry, collision, spatial queries
+    world_loader.hpp # Load world from JSON
+    game.hpp        # Full game state, update loop
+  platform/       # raylib wrapper (thin)
+    renderer.cpp    # Visualizes game state
+    input.cpp       # Converts raylib input to core types
+  main.cpp        # Entry point only
+maps/
+  test_corridor.json  # Test map
+tests/
+  test_*.cpp      # Headless tests of core/
+```
+
+## Testing
+
+**Headless tests only.** Do not run the GUI app - you can't see it and gain nothing.
+
+```bash
+cmake --build build && cd build && ctest --output-on-failure
+```
+
+When visual verification is needed, write a test plan for the user:
+```
+VISUAL TEST PLAN:
+1. Run ./build/discovery1
+2. Verify: Player starts inside corridor
+3. Verify: WASD moves player
+4. Verify: Mouse look works
+5. Verify: Walls block movement
+```
+
 ## Build Commands
 
 ```bash
