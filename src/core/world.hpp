@@ -1,5 +1,6 @@
 #pragma once
 #include "math.hpp"
+#include "object.hpp"
 #include <vector>
 #include <optional>
 
@@ -17,6 +18,7 @@ struct RayHit {
 
 struct World {
     std::vector<Solid> solids;
+    std::vector<GameObject> objects;
     AABB bounds;
 
     bool is_solid(Vec3 point) const {
@@ -29,6 +31,9 @@ struct World {
     bool collides(AABB box) const {
         for (const auto& s : solids) {
             if (s.bounds.intersects(box)) return true;
+        }
+        for (const auto& obj : objects) {
+            if (obj.bounds().intersects(box)) return true;
         }
         return false;
     }

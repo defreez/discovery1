@@ -14,6 +14,7 @@ public:
 private:
     Camera3D camera_{};
     void draw_solid(const core::Solid& solid);
+    void draw_object(const core::GameObject& obj);
 };
 
 } // namespace platform

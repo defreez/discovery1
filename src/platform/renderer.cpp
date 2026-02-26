@@ -49,6 +49,30 @@ void Renderer::draw_solid(const core::Solid& solid) {
     DrawCubeWires(pos, w, h, d, {100, 100, 110, 255});  // Subtle edges
 }
 
+void Renderer::draw_object(const core::GameObject& obj) {
+    core::AABB bounds = obj.bounds();
+    Vector3 pos = {
+        (bounds.min.x + bounds.max.x) / 2,
+        (bounds.min.y + bounds.max.y) / 2,
+        (bounds.min.z + bounds.max.z) / 2
+    };
+
+    // Get color (use override or default based on type)
+    core::Color4 c = obj.color.value_or(core::default_object_color(obj.type));
+    Color color = {c.r, c.g, c.b, c.a};
+
+    DrawCube(pos, obj.size.x, obj.size.y, obj.size.z, color);
+
+    // Darker edge color for wireframe
+    Color edgeColor = {
+        static_cast<unsigned char>(c.r > 40 ? c.r - 40 : 0),
+        static_cast<unsigned char>(c.g > 40 ? c.g - 40 : 0),
+        static_cast<unsigned char>(c.b > 40 ? c.b - 40 : 0),
+        c.a
+    };
+    DrawCubeWires(pos, obj.size.x, obj.size.y, obj.size.z, edgeColor);
+}
+
 void Renderer::draw(const core::GameState& state) {
     camera_.position = {state.player.position.x, state.player.position.y, state.player.position.z};
 
@@ -66,6 +90,10 @@ void Renderer::draw(const core::GameState& state) {
 
     for (const auto& solid : state.world.solids) {
         draw_solid(solid);
+    }
+
+    for (const auto& obj : state.world.objects) {
+        draw_object(obj);
     }
 
     EndMode3D();
