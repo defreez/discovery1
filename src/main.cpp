@@ -1,16 +1,22 @@
-#include "raylib.h"
+#include "core/game.hpp"
+#include "platform/renderer.hpp"
+#include "platform/input.hpp"
 
 int main() {
-    InitWindow(1280, 720, "Discovery One");
-    SetTargetFPS(60);
+    platform::Renderer renderer;
+    renderer.init(1280, 720, "Discovery One");
 
-    while (!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(BLACK);
-        DrawText("Discovery One", 540, 340, 30, WHITE);
-        EndDrawing();
+    core::GameState game = core::make_game("maps/test_corridor.json");
+
+    while (!renderer.should_close()) {
+        core::PlayerInput input = platform::read_input();
+        float dt = GetFrameTime();
+
+        game = core::update_game(game, input, dt);
+
+        renderer.draw(game);
     }
 
-    CloseWindow();
+    renderer.shutdown();
     return 0;
 }
