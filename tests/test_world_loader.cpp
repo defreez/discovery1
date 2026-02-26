@@ -125,3 +125,55 @@ TEST(GameTest, TimeAccumulates) {
 
     EXPECT_NEAR(game.time, 0.6f, 0.001f);
 }
+
+TEST(WorldLoaderTest, LoadObjects) {
+    const char* json = R"({
+        "name": "Object Test",
+        "player_start": [0, 1.7, 0],
+        "bounds": {"min": [-5, 0, -10], "max": [5, 3, 0]},
+        "solids": [],
+        "objects": [
+            {"type": "desk", "position": [0, 0, -5], "size": [0.8, 0.7, 0.4]},
+            {"type": "chair", "position": [0, 0, -4], "size": [0.5, 0.8, 0.5]}
+        ]
+    })";
+
+    MapData map = load_map_from_string(json);
+    EXPECT_EQ(map.world.objects.size(), 2u);
+    EXPECT_EQ(map.world.objects[0].type, "desk");
+    EXPECT_EQ(map.world.objects[1].type, "chair");
+    EXPECT_FLOAT_EQ(map.world.objects[0].position.z, -5);
+    EXPECT_FLOAT_EQ(map.world.objects[0].size.x, 0.8f);
+}
+
+TEST(WorldLoaderTest, LoadObjectsWithColor) {
+    const char* json = R"({
+        "name": "Color Test",
+        "player_start": [0, 1.7, 0],
+        "bounds": {"min": [-5, 0, -10], "max": [5, 3, 0]},
+        "solids": [],
+        "objects": [
+            {"type": "window", "position": [0, 1, -5], "size": [0.1, 0.8, 1], "color": [20, 20, 40, 200]}
+        ]
+    })";
+
+    MapData map = load_map_from_string(json);
+    ASSERT_EQ(map.world.objects.size(), 1u);
+    ASSERT_TRUE(map.world.objects[0].color.has_value());
+    EXPECT_EQ(map.world.objects[0].color->r, 20);
+    EXPECT_EQ(map.world.objects[0].color->g, 20);
+    EXPECT_EQ(map.world.objects[0].color->b, 40);
+    EXPECT_EQ(map.world.objects[0].color->a, 200);
+}
+
+TEST(WorldLoaderTest, NoObjectsArray) {
+    const char* json = R"({
+        "name": "No Objects",
+        "player_start": [0, 1.7, 0],
+        "bounds": {"min": [-5, 0, -10], "max": [5, 3, 0]},
+        "solids": []
+    })";
+
+    MapData map = load_map_from_string(json);
+    EXPECT_EQ(map.world.objects.size(), 0u);
+}

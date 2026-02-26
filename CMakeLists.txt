@@ -55,6 +55,7 @@ add_executable(test_core
     tests/test_world.cpp
     tests/test_world_loader.cpp
     tests/test_texture_gen.cpp
+    tests/test_objects.cpp
 )
 target_link_libraries(test_core PRIVATE discovery1_core GTest::gtest_main)
 include(GoogleTest)
