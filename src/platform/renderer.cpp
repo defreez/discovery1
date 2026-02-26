@@ -22,8 +22,34 @@ bool Renderer::should_close() const {
     return WindowShouldClose();
 }
 
+void Renderer::draw_solid(const core::Solid& solid) {
+    Vector3 pos = {
+        (solid.bounds.min.x + solid.bounds.max.x) / 2,
+        (solid.bounds.min.y + solid.bounds.max.y) / 2,
+        (solid.bounds.min.z + solid.bounds.max.z) / 2
+    };
+    float w = solid.bounds.max.x - solid.bounds.min.x;
+    float h = solid.bounds.max.y - solid.bounds.min.y;
+    float d = solid.bounds.max.z - solid.bounds.min.z;
+
+    // Pick color based on orientation (Doom-style flat colors)
+    Color color;
+    if (h < 0.3f && w > h && d > h) {
+        // Flat horizontal
+        if (solid.bounds.min.y < 0.5f) {
+            color = {140, 140, 150, 255};  // Floor: darker gray
+        } else {
+            color = {220, 220, 230, 255};  // Ceiling: light gray
+        }
+    } else {
+        color = {200, 200, 210, 255};  // Wall: off-white
+    }
+
+    DrawCube(pos, w, h, d, color);
+    DrawCubeWires(pos, w, h, d, {100, 100, 110, 255});  // Subtle edges
+}
+
 void Renderer::draw(const core::GameState& state) {
-    // Update camera from player state
     camera_.position = {state.player.position.x, state.player.position.y, state.player.position.z};
 
     core::Vec3 fwd = state.player.forward();
@@ -38,27 +64,12 @@ void Renderer::draw(const core::GameState& state) {
 
     BeginMode3D(camera_);
 
-    // Draw all solids as white boxes
     for (const auto& solid : state.world.solids) {
-        Vector3 pos = {
-            (solid.bounds.min.x + solid.bounds.max.x) / 2,
-            (solid.bounds.min.y + solid.bounds.max.y) / 2,
-            (solid.bounds.min.z + solid.bounds.max.z) / 2
-        };
-        Vector3 size = {
-            solid.bounds.max.x - solid.bounds.min.x,
-            solid.bounds.max.y - solid.bounds.min.y,
-            solid.bounds.max.z - solid.bounds.min.z
-        };
-        DrawCubeWires(pos, size.x, size.y, size.z, WHITE);
+        draw_solid(solid);
     }
-
-    // Draw floor grid for reference
-    DrawGrid(20, 1.0f);
 
     EndMode3D();
 
-    // Debug info
     DrawFPS(10, 10);
     DrawText(TextFormat("Pos: %.1f, %.1f, %.1f",
         state.player.position.x, state.player.position.y, state.player.position.z),
